@@ -1,0 +1,13 @@
+@media (max-width: 700px) {
+  .login__image__container {
+    display: none;
+  }
+
+  %btn {
+    min-width: 200px;
+  }
+
+  %text__input {
+    min-width: 350px;
+  }
+}
