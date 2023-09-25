@@ -1,21 +1,18 @@
-import { useState, useContext, useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AccountContext } from "../utilities/Account";
 import Button from "../components/Button";
 
 const Home = () => {
   const navigate = useNavigate();
-  const [status, setStatus] = useState(false);
-  const { getSession, logout, getCurrentUser } = useContext(AccountContext);
+  const { getSession, logout } = useContext(AccountContext);
 
-  const user = getCurrentUser();
-  console.log(user);
+  const loggedIn = localStorage.getItem("token");
 
   useEffect(() => {
     (async () => {
       const session = await getSession();
       console.log("Session data : ", session);
-      setStatus(true);
     })();
   }, []);
 
@@ -24,13 +21,24 @@ const Home = () => {
     navigate("/");
   };
 
+  const loginHandler = () => {
+    navigate("/");
+  };
+
   return (
     <div className="container">
       <div>HOME</div>
-      <div>{status && "Logged In"}</div>
-      <Button variant="secondary" onClick={logoutHandler}>
-        Logout
-      </Button>
+      <div>{loggedIn && "Logged In"}</div>
+      {loggedIn ? (
+        <Button variant="secondary" onClick={logoutHandler}>
+          Logout
+        </Button>
+      ) : (
+        <>
+          <div>Please log in</div>
+          <button onClick={loginHandler}>Login</button>
+        </>
+      )}
     </div>
   );
 };

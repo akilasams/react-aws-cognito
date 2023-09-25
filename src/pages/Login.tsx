@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { AccountContext } from "../utilities/Account";
@@ -15,6 +15,13 @@ const Login = () => {
   const navigate = useNavigate();
   const { authenticate } = useContext(AccountContext);
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/home");
+    }
+  }, []);
+
   const signUpClickHandler = () => {
     navigate("/register");
   };
@@ -24,6 +31,8 @@ const Login = () => {
     try {
       const data = await authenticate(email, password);
       console.log("Login data : ", data);
+      const jwtToken = data.accessToken.jwtToken as string;
+      localStorage.setItem("token", jwtToken);
       navigate("/home");
     } catch (err) {
       console.log("Login error : ", err);

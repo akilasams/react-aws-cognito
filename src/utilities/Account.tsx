@@ -1,40 +1,51 @@
-import { createContext } from "react";
-import { CognitoUser, AuthenticationDetails } from "amazon-cognito-identity-js";
+import { ReactNode, createContext } from "react";
+import {
+  CognitoUser,
+  AuthenticationDetails,
+  CognitoUserSession,
+} from "amazon-cognito-identity-js";
 
 import UserPool from "../UserPool";
 
-// interface User {
-//   email: string;
-//   password: string;
-// }
+interface UserContextType {
+  authenticate: (email: string, password: string) => Promise<any>;
+  getSession: () => Promise<any>;
+  logout: () => void;
+}
 
-// interface UserContextType {
-//   user: User;
-//   saveUser: (user: User) => void;
-//   updateUser: (user: User) => void;
-// }
+const contextDefaultValues: UserContextType = {
+  authenticate: async () => {},
+  getSession: async () => {},
+  logout: () => {},
+};
 
-const AccountContext = createContext();
+interface Props {
+  children?: ReactNode;
+}
 
-const Account = ({ children }) => {
+const AccountContext = createContext<UserContextType>(contextDefaultValues);
+
+const Account = ({ children, ...props }: Props) => {
   const getSession = async () => {
     return await new Promise((resolve, reject) => {
       const user = UserPool.getCurrentUser();
       if (user) {
-        user.getSession((err, session) => {
-          if (err) {
-            reject();
-          } else {
-            resolve(session);
+        user.getSession(
+          (err: Error | null, session: CognitoUserSession | null) => {
+            if (err) {
+              reject();
+            } else {
+              resolve(session);
+            }
           }
-        });
+        );
       } else {
         reject();
       }
     });
   };
 
-  const authenticate = async (email, password) => {
+  const authenticate = async (email: string, password: string) => {
     return await new Promise((resolve, reject) => {
       const user = new CognitoUser({
         Username: email,
@@ -68,26 +79,14 @@ const Account = ({ children }) => {
     console.log("User Data : ", user);
     if (user) {
       user.signOut();
+      localStorage.removeItem("token");
     } else {
       console.log("User not detected");
     }
   };
 
-  const getCurrentUser = async () => {
-    return await new Promise((resolve, reject) => {
-      const user = UserPool.getCurrentUser().getUserData();
-      if (user) {
-        resolve(user);
-      } else {
-        reject();
-      }
-    });
-  };
-
   return (
-    <AccountContext.Provider
-      value={{ authenticate, getSession, logout, getCurrentUser }}
-    >
+    <AccountContext.Provider value={{ authenticate, getSession, logout }}>
       {children}
     </AccountContext.Provider>
   );
